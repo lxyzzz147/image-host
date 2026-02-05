@@ -1,253 +1,295 @@
 <!doctype html> 
- <html lang="zh-CN"> 
- <head> 
-   <meta charset="utf-8" /> 
-   <meta name="viewport" content="width=device-width, initial-scale=1" /> 
-   <title>图床 / Image Hosting</title> 
-   <style> 
-     :root{ 
-       color-scheme: dark; 
-       --bg1:#0a1229; 
-       --bg2:#1e3a8a; 
-       --card: rgba(255,255,255,.08); 
-       --border: rgba(255,255,255,.14); 
-       --text: rgba(255,255,255,.92); 
-       --muted: rgba(255,255,255,.68); 
-       --accent: #3b82f6; 
-     } 
-     *{box-sizing:border-box} 
-     body{ 
-       margin:0; 
-       min-height:100vh; 
-       display: flex;
-       flex-direction: column;
-       align-items: center;
-       padding: 60px 20px;
-       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", 
-                    "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif; 
-       background: 
-         radial-gradient(1200px 700px at 20% 15%, rgba(59,130,246,.30), transparent 60%), 
-         radial-gradient(1000px 600px at 85% 80%, rgba(30,58,138,.40), transparent 55%), 
-         linear-gradient(135deg, var(--bg1), #0b1636 35%, var(--bg2)); 
-       background-attachment: fixed;
-       color:var(--text); 
-       overflow-y: auto;
-     } 
-     body::before{ 
-       content:""; 
-       position:fixed; inset:0; 
-       background-image: 
-         linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px), 
-         linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px); 
-       background-size: 48px 48px; 
-       mask-image: radial-gradient(circle at 50% 35%, black 0%, transparent 65%); 
-       pointer-events:none; 
-       opacity:.9; 
-       z-index: -1;
-     } 
-     .card{ 
-       width:min(680px, 100%); 
-       padding:26px 28px; 
-       border-radius:18px; 
-       background: var(--card); 
-       border: 1px solid var(--border); 
-       backdrop-filter: blur(14px); 
-       box-shadow: 0 18px 60px rgba(0,0,0,.35); 
-       margin-bottom: 40px;
-     } 
-     .badge{ 
-       display:inline-flex; 
-       align-items:center; 
-       gap:10px; 
-       padding:8px 12px; 
-       border-radius:999px; 
-       border: 1px solid rgba(255,255,255,.18); 
-       background: rgba(255,255,255,.06); 
-       color: var(--muted); 
-       font-size:13px; 
-       letter-spacing:.3px; 
-     } 
-     .dot{ 
-       width:9px; height:9px; border-radius:50%; 
-       background: var(--accent); 
-       box-shadow: 0 0 18px rgba(59,130,246,.85); 
-     } 
-     h1{ 
-       margin:14px 0 6px; 
-       font-size: clamp(28px, 5vw, 40px); 
-       line-height:1.15; 
-     } 
-     p{ 
-       margin:0; 
-       color: var(--muted); 
-       font-size: 15px; 
-       line-height:1.7; 
-     } 
-     .sep{ 
-       margin:18px 0 16px; 
-       height:1px; 
-       background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent); 
-     } 
-     .mono{ 
-       margin-top:12px; 
-       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; 
-       font-size: 12.5px; 
-       color: rgba(255,255,255,.72); 
-       opacity:.95; 
-     } 
-     
-     /* Gallery Styles */
-     .gallery-container {
-        width: min(1000px, 100%);
-     }
-     .gallery-header {
-        margin-bottom: 20px;
-        font-size: 18px;
-        color: var(--muted);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-     }
-     .gallery-header::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: rgba(255,255,255,.1);
-     }
-     .gallery {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 16px;
-     }
-     .img-card {
-        background: rgba(0,0,0,0.2);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        aspect-ratio: 16/9;
-        position: relative;
-        transition: all 0.3s ease;
-        cursor: pointer;
-     }
-     .img-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.3);
-        border-color: var(--accent);
-     }
-     .img-card img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: transform 0.5s ease;
-     }
-     .img-card:hover img {
-        transform: scale(1.05);
-     }
-     .img-info {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 8px 12px;
-        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-        opacity: 0;
-        transform: translateY(10px);
-        transition: all 0.3s ease;
-     }
-     .img-card:hover .img-info {
-        opacity: 1;
-        transform: translateY(0);
-     }
-     .img-name {
-        font-size: 11px;
-        color: rgba(255,255,255,0.9);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-family: ui-monospace, monospace;
-     }
-   </style> 
- </head> 
- <body> 
-   <main class="card"> 
-     <div class="badge"><span class="dot"></span>Image Hosting / 图床</div> 
-     <h1>这是我的图床</h1> 
-     <p>This is my image hosting.</p> 
-     <div class="sep"></div> 
-     <p class="mono">Ready for uploads · CDN accelerated · Stable links</p> 
-   </main> 
-
-   <section class="gallery-container">
-     <div class="gallery-header">Gallery</div>
-     <div class="gallery" id="gallery">
-       <!-- Images will be loaded here -->
-    </div>
-  </section>
-
-  <script>
-    async function loadImages() {
-      const gallery = document.getElementById('gallery');
-      const imageFolder = '/'; // Folder containing images
-      
-      try {
-        // Fetch the directory listing (works with standard web servers like python -m http.server, Apache, Nginx)
-        const response = await fetch(imageFolder);
-        
-        if (!response.ok) throw new Error('Folder not found');
-        
-        const text = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        
-        // Find all links in the directory listing
-        const links = Array.from(doc.querySelectorAll('a'));
-        
-        // Filter for image files
-        const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']);
-        const images = links
-          .map(link => link.getAttribute('href'))
-          .filter(href => {
-            if (!href) return false;
-            // Handle different server listing formats (some include full paths, some relative)
-            const filename = href.split('/').pop().split('?')[0]; // Clean up path
-            const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
-            return imageExtensions.has(ext) && !href.startsWith('/'); // Basic filter
-          })
-          .map(href => {
-             // Ensure we just get the filename to construct clean paths
-             return href.split('/').pop();
-          });
-
-        if (images.length === 0) {
-            gallery.innerHTML = '<p style="color:var(--muted)">No images found in images/ folder.</p>';
-            return;
-        }
-
-        gallery.innerHTML = images.map(filename => {
-          const fullPath = imageFolder + filename;
-          // Truncate long filenames for display
-          const displayName = filename.length > 20 
-            ? filename.slice(0, 8) + '...' + filename.slice(-8) 
-            : filename;
-            
-          return `
-            <a href="${fullPath}" target="_blank" class="img-card">
-              <img src="${fullPath}" alt="${filename}" loading="lazy">
-              <div class="img-info">
-                <div class="img-name" title="${filename}">${displayName}</div>
-              </div>
-            </a>
-          `;
-        }).join('');
-        
-      } catch (error) {
-        console.error('Failed to load images:', error);
-        gallery.innerHTML = '<p style="color:var(--muted)">Failed to load gallery. Make sure "images" folder exists and directory listing is enabled on your server.</p>';
-      }
+<html lang="zh-CN"> 
+<head> 
+  <meta charset="utf-8" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> 
+  <title>图床 / Image Hosting</title> 
+  <style> 
+    :root{ 
+      color-scheme: dark; 
+      --bg1:#0a1229; 
+      --bg2:#1e3a8a; 
+      --card: rgba(255,255,255,.08); 
+      --border: rgba(255,255,255,.14); 
+      --text: rgba(255,255,255,.92); 
+      --muted: rgba(255,255,255,.68); 
+      --accent: #3b82f6; 
+    } 
+    *{box-sizing:border-box} 
+    body{ 
+      margin:0; 
+      min-height:100vh; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", 
+                   "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif; 
+      background: 
+        radial-gradient(1200px 700px at 20% 15%, rgba(59,130,246,.30), transparent 60%), 
+        radial-gradient(1000px 600px at 85% 80%, rgba(30,58,138,.40), transparent 55%), 
+        linear-gradient(135deg, var(--bg1), #0b1636 35%, var(--bg2)); 
+      background-attachment: fixed;
+      color:var(--text); 
+      overflow-y: auto;
+    } 
+    body::before{ 
+      content:""; 
+      position:fixed; inset:0; 
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px), 
+        linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px); 
+      background-size: 48px 48px; 
+      mask-image: radial-gradient(circle at 50% 35%, black 0%, transparent 65%); 
+      pointer-events:none; 
+      opacity:.9; 
+      z-index: -1;
+    } 
+    .card{ 
+      width:min(680px, 100%); 
+      padding:26px 28px; 
+      border-radius:18px; 
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      backdrop-filter: blur(14px); 
+      box-shadow: 0 18px 60px rgba(0,0,0,.35); 
+      margin-bottom: 40px;
+    } 
+    .badge{ 
+      display:inline-flex; 
+      align-items:center; 
+      gap:10px; 
+      padding:8px 12px; 
+      border-radius:999px; 
+      border: 1px solid rgba(255,255,255,.18); 
+      background: rgba(255,255,255,.06); 
+      color: var(--muted); 
+      font-size:13px; 
+      letter-spacing:.3px; 
+    } 
+    .dot{ 
+      width:9px; height:9px; border-radius:50%; 
+      background: var(--accent); 
+      box-shadow: 0 0 18px rgba(59,130,246,.85); 
+      animation: pulse 2s infinite;
+    } 
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(59,130,246, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(59,130,246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(59,130,246, 0); }
     }
+    h1{ 
+      margin:14px 0 6px; 
+      font-size: clamp(28px, 5vw, 40px); 
+      line-height:1.15; 
+    } 
+    p{ 
+      margin:0; 
+      color: var(--muted); 
+      font-size: 15px; 
+      line-height:1.7; 
+    } 
+    .sep{ 
+      margin:18px 0 16px; 
+      height:1px; 
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent); 
+    } 
+    .mono{ 
+      margin-top:12px; 
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; 
+      font-size: 12.5px; 
+      color: rgba(255,255,255,.72); 
+      opacity:.95; 
+    } 
     
-    loadImages();
-  </script>
+    /* Gallery Styles */
+    .gallery-container {
+       width: min(1000px, 100%);
+    }
+    .gallery-header {
+       margin-bottom: 20px;
+       font-size: 18px;
+       color: var(--muted);
+       display: flex;
+       align-items: center;
+       gap: 10px;
+    }
+    .gallery-header::after {
+       content: "";
+       flex: 1;
+       height: 1px;
+       background: rgba(255,255,255,.1);
+    }
+    .gallery {
+       display: grid;
+       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+       gap: 16px;
+    }
+    .img-card {
+       background: rgba(0,0,0,0.2);
+       border: 1px solid var(--border);
+       border-radius: 12px;
+       overflow: hidden;
+       aspect-ratio: 16/9;
+       position: relative;
+       transition: all 0.3s ease;
+       cursor: pointer;
+    }
+    .img-card:hover {
+       transform: translateY(-4px);
+       box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+       border-color: var(--accent);
+    }
+    .img-card img {
+       width: 100%;
+       height: 100%;
+       object-fit: cover;
+       display: block;
+       transition: transform 0.5s ease;
+    }
+    .img-card:hover img {
+       transform: scale(1.05);
+    }
+    .img-info {
+       position: absolute;
+       bottom: 0;
+       left: 0;
+       right: 0;
+       padding: 8px 12px;
+       background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+       opacity: 0;
+       transform: translateY(10px);
+       transition: all 0.3s ease;
+    }
+    .img-card:hover .img-info {
+       opacity: 1;
+       transform: translateY(0);
+    }
+    .img-name {
+       font-size: 11px;
+       color: rgba(255,255,255,0.9);
+       white-space: nowrap;
+       overflow: hidden;
+       text-overflow: ellipsis;
+       font-family: ui-monospace, monospace;
+    }
+  </style> 
+</head> 
+<body> 
+  <main class="card"> 
+    <div class="badge"><span class="dot"></span>Image Hosting / 图床</div> 
+    <h1>这是我的图床</h1> 
+    <p>This is my image hosting.</p> 
+    <div class="sep"></div> 
+    <p class="mono">Ready for uploads · Auto Refresh · Stable links</p> 
+  </main> 
+
+  <section class="gallery-container">
+    <div class="gallery-header">Gallery (Auto Refresh)</div>
+    <div class="gallery" id="gallery">
+      <!-- Images will be loaded here -->
+   </div>
+ </section>
+
+ <script>
+   let currentImagesHash = '';
+
+   async function loadImages() {
+     const gallery = document.getElementById('gallery');
+     // We try to fetch the current directory to get a listing
+     // Note: This requires the web server to have directory listing enabled (autoindex)
+     // and not be blocked by index.html itself (which is tricky if they are in the same folder).
+     const imageFolder = './'; 
+     
+     try {
+       // Add timestamp to bypass cache
+       const response = await fetch(imageFolder + '?t=' + new Date().getTime());
+       
+       if (!response.ok) throw new Error('Folder not found');
+       
+       const text = await response.text();
+       
+       // Parse the directory listing HTML
+       const parser = new DOMParser();
+       const doc = parser.parseFromString(text, 'text/html');
+       
+       // Check if we got back the index.html itself (common issue)
+       if (doc.title.includes('图床 / Image Hosting')) {
+          console.warn('Server returned index.html instead of directory listing.');
+          // If we can't get a list, we can't show dynamic images. 
+          // We could fallback to a hardcoded list or just stop.
+          // But since the user asked for this, we assume their environment allows it 
+          // (e.g. maybe they deleted index.html locally or configured the server).
+          // For now, we continue but it might produce 0 images if it parses itself and finds no other links.
+       }
+       
+       const links = Array.from(doc.querySelectorAll('a'));
+       
+       const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']);
+       const images = links
+         .map(link => link.getAttribute('href'))
+         .filter(href => {
+           if (!href) return false;
+           try {
+             const decoded = decodeURIComponent(href);
+             // Remove query params
+             const filename = decoded.split('/').pop().split('?')[0];
+             if (!filename || filename.startsWith('.')) return false;
+             
+             const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+             // Exclude self and non-images
+             return imageExtensions.has(ext) && filename !== 'index.html';
+           } catch(e) { return false; }
+         })
+         .map(href => {
+            const decoded = decodeURIComponent(href);
+            return decoded.split('/').pop().split('?')[0];
+         });
+         
+       // Remove duplicates
+       const uniqueImages = [...new Set(images)];
+       
+       // Check if list changed
+       const newHash = JSON.stringify(uniqueImages.sort());
+       if (newHash === currentImagesHash) return;
+       currentImagesHash = newHash;
+
+       if (uniqueImages.length === 0) {
+           // If we found nothing, keep the old view or show message? 
+           // Better to show message if it's the first load.
+           if (gallery.innerHTML.trim() === '') {
+                gallery.innerHTML = '<p style="color:var(--muted)">No images found (or directory listing disabled).</p>';
+           }
+           return;
+       }
+
+       gallery.innerHTML = uniqueImages.map(filename => {
+         const fullPath = imageFolder + filename;
+         // Truncate long filenames
+         const displayName = filename.length > 20 
+           ? filename.slice(0, 8) + '...' + filename.slice(-8) 
+           : filename;
+           
+         return `
+           <a href="${fullPath}" target="_blank" class="img-card">
+             <img src="${fullPath}" alt="${filename}" loading="lazy">
+             <div class="img-info">
+               <div class="img-name" title="${filename}">${displayName}</div>
+             </div>
+           </a>
+         `;
+       }).join('');
+       
+     } catch (error) {
+       console.error('Failed to load images:', error);
+     }
+   }
+   
+   // Initial load
+   loadImages();
+   
+   // Poll every 3 seconds
+   setInterval(loadImages, 3000);
+ </script>
 </body> 
 </html>
