@@ -188,21 +188,54 @@
   <script>
     async function loadImages() {
       const gallery = document.getElementById('gallery');
+      const imageFolder = '/'; // Folder containing images
+      
       try {
-        const response = await fetch('/api/images');
-        const images = await response.json();
+        // Fetch the directory listing (works with standard web servers like python -m http.server, Apache, Nginx)
+        const response = await fetch(imageFolder);
         
-        gallery.innerHTML = images.map(img => {
+        if (!response.ok) throw new Error('Folder not found');
+        
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        
+        // Find all links in the directory listing
+        const links = Array.from(doc.querySelectorAll('a'));
+        
+        // Filter for image files
+        const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']);
+        const images = links
+          .map(link => link.getAttribute('href'))
+          .filter(href => {
+            if (!href) return false;
+            // Handle different server listing formats (some include full paths, some relative)
+            const filename = href.split('/').pop().split('?')[0]; // Clean up path
+            const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+            return imageExtensions.has(ext) && !href.startsWith('/'); // Basic filter
+          })
+          .map(href => {
+             // Ensure we just get the filename to construct clean paths
+             return href.split('/').pop();
+          });
+
+        if (images.length === 0) {
+            gallery.innerHTML = '<p style="color:var(--muted)">No images found in images/ folder.</p>';
+            return;
+        }
+
+        gallery.innerHTML = images.map(filename => {
+          const fullPath = imageFolder + filename;
           // Truncate long filenames for display
-          const displayName = img.length > 20 
-            ? img.slice(0, 8) + '...' + img.slice(-8) 
-            : img;
+          const displayName = filename.length > 20 
+            ? filename.slice(0, 8) + '...' + filename.slice(-8) 
+            : filename;
             
           return `
-            <a href="${img}" target="_blank" class="img-card">
-              <img src="${img}" alt="${img}" loading="lazy">
+            <a href="${fullPath}" target="_blank" class="img-card">
+              <img src="${fullPath}" alt="${filename}" loading="lazy">
               <div class="img-info">
-                <div class="img-name" title="${img}">${displayName}</div>
+                <div class="img-name" title="${filename}">${displayName}</div>
               </div>
             </a>
           `;
@@ -210,7 +243,7 @@
         
       } catch (error) {
         console.error('Failed to load images:', error);
-        gallery.innerHTML = '<p style="color:var(--muted)">Failed to load gallery.</p>';
+        gallery.innerHTML = '<p style="color:var(--muted)">Failed to load gallery. Make sure "images" folder exists and directory listing is enabled on your server.</p>';
       }
     }
     
